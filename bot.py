@@ -32,7 +32,7 @@ def wake_up(update, context):
             [
                 "/last_selfie",
                 "/school_photo",
-                "/main_hobby",
+                "/main_hobie",
             ],
             ["/gpt_granny", "/SQLvsNoSQL", "/first_love"],
             ["/voice_to_text"],
@@ -67,11 +67,11 @@ def give_high_school_photo(update, context):
     send_photo(update, "school_photo.jpg")
 
 
-def give_main_hobby(update, context):
+def give_main_hobie(update, context):
     chat = update.effective_chat
     context.bot.send_message(
         chat_id=chat.id,
-        text=text_about_hobbie,
+        text=text_about_hobie,
     )
 
 
@@ -148,7 +148,7 @@ def main():
     updater.dispatcher.add_handler(
         CommandHandler("school_photo", give_high_school_photo)
     )
-    updater.dispatcher.add_handler(CommandHandler("main_hobby", give_main_hobby))
+    updater.dispatcher.add_handler(CommandHandler("main_hobie", give_main_hobie))
     updater.dispatcher.add_handler(CommandHandler("gpt_granny", tell_about_gpt_granny))
     updater.dispatcher.add_handler(
         CommandHandler("SQLvsNoSQL", tell_about_sql_vs_nosql)

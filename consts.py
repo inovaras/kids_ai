@@ -1,12 +1,15 @@
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+my_hobie = os.getenv("my_hobie")
+
 URL_CAT = "https://api.thecatapi.com/v1/images/search"
 URL_DOG = "https://api.thedogapi.com/v1/images/search"
-
 github_link = "https://github.com/inovaras/kids_ai"
-text_about_hobbie = f"""Я обожаю плавать! Когда я плаваю, я чувствую себя в своей стихии. Могу переплыть небольшое озеро и плавать в достаточно холодной воде, также люблю прыгать с мостиков :)  """
-text_about_me = f"""Привет! Меня зовут Альбина. Рада познакомиться :) """
+text_about_hobie = my_hobie
 manual = f"""
-Привет! Меня зовут Альбина. Рада познакомиться :)
-
 Ознакомьтесь с руководством.
 Вы можете посылать следующие команды:
 
