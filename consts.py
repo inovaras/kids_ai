@@ -3,12 +3,12 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-my_hobie = os.getenv("my_hobie")
+my_hobby = os.getenv("my_hobby")
 
 URL_CAT = "https://api.thecatapi.com/v1/images/search"
 URL_DOG = "https://api.thedogapi.com/v1/images/search"
 github_link = "https://github.com/inovaras/kids_ai"
-text_about_hobie = my_hobie
+text_about_hobby = my_hobby
 manual = f"""
 Ознакомьтесь с руководством.
 Вы можете посылать следующие команды:
@@ -36,9 +36,9 @@ manual = f"""
 /voice_to_text - перевод голосовoго сообщения в текст 
 
 И просто повеселиться:
-/newcat - пролучить фотку нового котика
+/newcat - получить фотку нового котика
 /newdog - получить фотку новой собачки
 
 А также:
-Внизу есть терминал с кнопками для удобства, предлагаю попробовать :)
+Внизу есть терминал с кнопками для удобства, попробуйте :)
 """

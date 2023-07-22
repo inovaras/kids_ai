@@ -32,7 +32,7 @@ def wake_up(update, context):
             [
                 "/last_selfie",
                 "/school_photo",
-                "/main_hobie",
+                "/main_hobby",
             ],
             ["/gpt_granny", "/SQLvsNoSQL", "/first_love"],
             ["/voice_to_text"],
@@ -56,7 +56,7 @@ def send_voice(update, audio_name):
     chat = update.effective_chat
     file_path = os.path.join(media_folder, audio_name)
     with open(file_path, "rb") as audio_file:
-        bot.send_voice(chat_id=chat.id, voice=audio_file)
+        chat.send_voice(voice=audio_file)
 
 
 def give_last_selfie(update, context):
@@ -67,11 +67,11 @@ def give_high_school_photo(update, context):
     send_photo(update, "school_photo.jpg")
 
 
-def give_main_hobie(update, context):
+def give_main_hobby(update, context):
     chat = update.effective_chat
     context.bot.send_message(
         chat_id=chat.id,
-        text=text_about_hobie,
+        text=text_about_hobby,
     )
 
 
@@ -148,7 +148,7 @@ def main():
     updater.dispatcher.add_handler(
         CommandHandler("school_photo", give_high_school_photo)
     )
-    updater.dispatcher.add_handler(CommandHandler("main_hobie", give_main_hobie))
+    updater.dispatcher.add_handler(CommandHandler("main_hobby", give_main_hobby))
     updater.dispatcher.add_handler(CommandHandler("gpt_granny", tell_about_gpt_granny))
     updater.dispatcher.add_handler(
         CommandHandler("SQLvsNoSQL", tell_about_sql_vs_nosql)
