@@ -33,5 +33,9 @@ python -m pip install --upgrade pip
 ```
 pip install -r requirements.txt
 ```
+В корневой папке создайте файл  ```.env```
+В файле ```.env``` создайте переменные TELEGRAM_TOKEN, CHAT_ID, my_hobie
 
+В корневой папке создайте директорию media, положите туда файлы chat_gpt.mp3, first_love.mp3, last_selfie.jpg, school_photo.jpg
 
+Запустите bot.py
