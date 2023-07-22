@@ -1,17 +1,14 @@
 import logging
 import os
-
 import requests
 from dotenv import load_dotenv
 from telegram import Bot, ReplyKeyboardMarkup, ext
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
-
 from consts import *
 
 load_dotenv()
 secret_token = os.getenv("TELEGRAM_TOKEN")
-chat_id = os.getenv("CHAT_ID")
 ibm_api_key = os.getenv('IBM_API_KEY')
 
 
@@ -25,56 +22,11 @@ bot = Bot(token=secret_token)
 
 media_folder = "media"
 file_list = os.listdir(media_folder)
-
-
-def recognize_speech(audio_file_path):
-    url = "https://api.us-south.speech-to-text.watson.cloud.ibm.com/instances/YOUR_INSTANCE_ID/v1/recognize"
-    headers = {
-        "Content-Type": "audio/ogg",
-    }
-    params = {
-        "access_token": ibm_api_key,
-        "model": "en-US_BroadbandModel",  # Используйте код модели для вашего языка, если это не английский
-    }
-
-    with open(audio_file_path, "rb") as audio_file:
-        audio_data = audio_file.read()
-
-    response = requests.post(url, headers=headers, params=params, data=audio_data)
-
-    if response.status_code == 200:
-        return response.json()["results"][0]["alternatives"][0]["transcript"]
-    else:
-        return None
-
-
-def handle_voice_message(update, context):
-    # Получить объект аудио-сообщения из обновления
-    voice_message = update.message.voice
-
-    # Загрузить аудио на сервер Telegram и получить объект File
-    voice_file = voice_message.get_file()
-
-    # Скачать аудио-файл на локальную машину
-    audio_file_path = 'audio.ogg'
-    voice_file.download(audio_file_path)
-
-    # Распознать речь с использованием IBM Watson Speech to Text API
-    recognized_text = recognize_speech(audio_file_path)
-
-    if recognized_text:
-        # Отправить распознанный текст пользователю
-        update.message.reply_text("Распознанная речь: " + recognized_text)
-    else:
-        update.message.reply_text("Не удалось распознать речь.")
+is_used_command_next_step = False
 
 
 def wake_up(update, context):
     chat = update.effective_chat
-    context.bot.send_message(
-        chat_id=chat.id,
-        text=manual,
-    )
     buttons = ReplyKeyboardMarkup(
         [
             [
@@ -83,42 +35,44 @@ def wake_up(update, context):
                 "/main_hobby",
             ],
             ["/tell_about_gpt_granny", "/SQLvsNoSQL", "/tell_about_first_love"],
-            ["/nextstep", "/history", "/github_link"],
+            ["/nextstep", "/check_message", "/github_link"],
             ["/newcat", "/newdog"]
         ],
         resize_keyboard=True,
+    )
+    chat.bot.send_message(
+        chat_id=chat.id,
+        text=manual,
+        reply_markup=buttons
     )
 
 
 def say_hi(update, context):
     chat = update.effective_chat
-    context.bot.send_message(
-        chat_id=chat.id, text=f"Привет, {chat.first_name}"
-    )
+    chat.bot.send_message(text=f"Привет, {chat.first_name}")
 
 
-def send_photo(file_name):
+def send_photo(update, file_name):
+    chat = update.effective_chat
     if file_name.endswith(".jpg") or file_name.endswith(".png"):
         file_path = os.path.join(media_folder, file_name)
         with open(file_path, "rb") as photo:
-            bot.send_photo(chat_id=chat_id, photo=photo)
+            chat.send_photo(photo=photo)
 
 
-def send_audio(audio_name):
-    url = f"https://api.telegram.org/bot{secret_token}/sendAudio"
+def send_voice(update, audio_name):
+    chat = update.effective_chat
     file_path = os.path.join(media_folder, audio_name)
-    files = {"audio": open(file_path, "rb")}
-    data = {"chat_id": chat_id}
-    response = requests.post(url, files=files, data=data)
-    print(response.json())
+    with open(file_path, 'rb') as audio_file:
+        bot.send_voice(chat_id=chat.id, voice=audio_file)
 
 
 def give_last_selfie(update, context):
-    send_photo("last_selfy.jpg")
+    send_photo(update, "last_selfie.jpg")
 
 
 def give_high_school_photo(update, context):
-    send_photo("high_school_photo.jpg")
+    send_photo(update, "high_school_photo.jpg")
 
 
 def give_main_hobby(update, context):
@@ -130,11 +84,11 @@ def give_main_hobby(update, context):
 
 
 def tell_about_gpt_granny(update, context):
-    send_audio("chat_gpt.wav")
+    send_voice(update, "chat_gpt.mp3")
 
 
 def tell_about_first_love(update, context):
-    send_audio("first_love.wav")
+    send_voice(update, "first_love.mp3")
 
 
 def send_github_link(update, context):
@@ -143,28 +97,30 @@ def send_github_link(update, context):
 
 
 def next_step(update, context):
-    next_steps_message = "Пожалуйста, напишите Ваше сообщение"
-    context.bot.send_message(chat_id=chat_id, text=next_steps_message)
-
+    chat = update.effective_chat
+    next_steps_message = "Пожалуйста, напишите дальнейшие шаги"
+    bot.send_message(chat_id=chat.id, text=next_steps_message)
+    global is_used_command_next_step
+    is_used_command_next_step = True
 
 
 def echo(update, context):
-    if update.message.from_user.is_bot:
-        return
-    # Отправьте ответное сообщение, чтобы бот не пропустил сообщение от себя
     chat = update.effective_chat
+    global is_used_command_next_step
+    if update.message.from_user.is_bot or not is_used_command_next_step:
+        return
+
     with open("messages/text.txt", mode="a", encoding="utf-8") as file:
         file.write(update.message.text + '\n')
-    context.bot.send_message(chat_id=chat_id, text="Спасибо за сообщение!")
+    bot.send_message(chat_id=chat.id, text="Спасибо за сообщение!")
+    is_used_command_next_step = False
 
 
-def get_history(update, context):
+def check_message(update, context):
+    chat = update.effective_chat
     with open("messages/text.txt", mode="r", encoding="utf-8") as file:
         text = file.read()
-    context.bot.send_message(chat_id=chat_id, text=text)
-
-
-message_handler = MessageHandler(Filters.text, echo)
+    bot.send_message(chat_id=chat.id, text=text)
 
 
 def give_new_cat(update, context):
@@ -185,6 +141,7 @@ def get_new_image(URL_1, URL_2):
         response = requests.get(URL_2).json()
     return response[0]['url']
 
+
 def main():
     updater.dispatcher.add_handler(CommandHandler("start", wake_up))
     updater.dispatcher.add_handler(CommandHandler("last_selfie", give_last_selfie))
@@ -200,11 +157,10 @@ def main():
     )
     updater.dispatcher.add_handler(CommandHandler("github_link", send_github_link))
     updater.dispatcher.add_handler(CommandHandler('nextstep', next_step))
-    updater.dispatcher.add_handler(CommandHandler('history', get_history))
+    updater.dispatcher.add_handler(CommandHandler('check_message', check_message))
     updater.dispatcher.add_handler(CommandHandler('newcat', give_new_cat))
     updater.dispatcher.add_handler(CommandHandler('newdog', give_new_dog))
-    updater.dispatcher.add_handler(message_handler)
-
+    updater.dispatcher.add_handler(MessageHandler(Filters.text, echo))
     updater.start_polling()
     updater.idle()
 
