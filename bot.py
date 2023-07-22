@@ -1,5 +1,6 @@
 import logging
 import os
+
 import requests
 from dotenv import load_dotenv
 from telegram import Bot, ReplyKeyboardMarkup, ext
@@ -9,7 +10,6 @@ from consts import *
 
 load_dotenv()
 secret_token = os.getenv("TELEGRAM_TOKEN")
-ibm_api_key = os.getenv('IBM_API_KEY')
 
 
 logging.basicConfig(
@@ -31,25 +31,17 @@ def wake_up(update, context):
         [
             [
                 "/last_selfie",
-                "/high_school_photo",
+                "/school_photo",
                 "/main_hobby",
             ],
-            ["/tell_about_gpt_granny", "/SQLvsNoSQL", "/tell_about_first_love"],
+            ["/gpt_granny", "/SQLvsNoSQL", "/first_love"],
+            ["/voice_to_text"],
             ["/nextstep", "/check_message", "/github_link"],
-            ["/newcat", "/newdog"]
+            ["/newcat", "/newdog"],
         ],
         resize_keyboard=True,
     )
-    chat.bot.send_message(
-        chat_id=chat.id,
-        text=manual,
-        reply_markup=buttons
-    )
-
-
-def say_hi(update, context):
-    chat = update.effective_chat
-    chat.bot.send_message(text=f"Привет, {chat.first_name}")
+    chat.bot.send_message(chat_id=chat.id, text=manual, reply_markup=buttons)
 
 
 def send_photo(update, file_name):
@@ -63,7 +55,7 @@ def send_photo(update, file_name):
 def send_voice(update, audio_name):
     chat = update.effective_chat
     file_path = os.path.join(media_folder, audio_name)
-    with open(file_path, 'rb') as audio_file:
+    with open(file_path, "rb") as audio_file:
         bot.send_voice(chat_id=chat.id, voice=audio_file)
 
 
@@ -72,7 +64,7 @@ def give_last_selfie(update, context):
 
 
 def give_high_school_photo(update, context):
-    send_photo(update, "high_school_photo.jpg")
+    send_photo(update, "school_photo.jpg")
 
 
 def give_main_hobby(update, context):
@@ -85,6 +77,10 @@ def give_main_hobby(update, context):
 
 def tell_about_gpt_granny(update, context):
     send_voice(update, "chat_gpt.mp3")
+
+
+def tell_about_sql_vs_nosql(update, context):
+    send_voice(update, "sql_vs_nosql.mp3")
 
 
 def tell_about_first_love(update, context):
@@ -111,7 +107,7 @@ def echo(update, context):
         return
 
     with open("messages/text.txt", mode="a", encoding="utf-8") as file:
-        file.write(update.message.text + '\n')
+        file.write(update.message.text + "\n")
     bot.send_message(chat_id=chat.id, text="Спасибо за сообщение!")
     is_used_command_next_step = False
 
@@ -121,6 +117,10 @@ def check_message(update, context):
     with open("messages/text.txt", mode="r", encoding="utf-8") as file:
         text = file.read()
     bot.send_message(chat_id=chat.id, text=text)
+
+
+def voice_to_text(update, context):
+    pass
 
 
 def give_new_cat(update, context):
@@ -139,27 +139,27 @@ def get_new_image(URL_1, URL_2):
     except Exception as e:
         print(e)
         response = requests.get(URL_2).json()
-    return response[0]['url']
+    return response[0]["url"]
 
 
 def main():
     updater.dispatcher.add_handler(CommandHandler("start", wake_up))
     updater.dispatcher.add_handler(CommandHandler("last_selfie", give_last_selfie))
     updater.dispatcher.add_handler(
-        CommandHandler("high_school_photo", give_high_school_photo)
+        CommandHandler("school_photo", give_high_school_photo)
     )
     updater.dispatcher.add_handler(CommandHandler("main_hobby", give_main_hobby))
+    updater.dispatcher.add_handler(CommandHandler("gpt_granny", tell_about_gpt_granny))
     updater.dispatcher.add_handler(
-        CommandHandler("tell_about_gpt_granny", tell_about_gpt_granny)
+        CommandHandler("SQLvsNoSQL", tell_about_sql_vs_nosql)
     )
-    updater.dispatcher.add_handler(
-        CommandHandler("tell_about_first_love", tell_about_first_love)
-    )
+    updater.dispatcher.add_handler(CommandHandler("first_love", tell_about_first_love))
     updater.dispatcher.add_handler(CommandHandler("github_link", send_github_link))
-    updater.dispatcher.add_handler(CommandHandler('nextstep', next_step))
-    updater.dispatcher.add_handler(CommandHandler('check_message', check_message))
-    updater.dispatcher.add_handler(CommandHandler('newcat', give_new_cat))
-    updater.dispatcher.add_handler(CommandHandler('newdog', give_new_dog))
+    updater.dispatcher.add_handler(CommandHandler("nextstep", next_step))
+    updater.dispatcher.add_handler(CommandHandler("check_message", check_message))
+    updater.dispatcher.add_handler(CommandHandler("voice_to_text", voice_to_text))
+    updater.dispatcher.add_handler(CommandHandler("newcat", give_new_cat))
+    updater.dispatcher.add_handler(CommandHandler("newdog", give_new_dog))
     updater.dispatcher.add_handler(MessageHandler(Filters.text, echo))
     updater.start_polling()
     updater.idle()
