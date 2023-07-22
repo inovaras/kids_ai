@@ -29,13 +29,8 @@ def wake_up(update, context):
     chat = update.effective_chat
     buttons = ReplyKeyboardMarkup(
         [
-            [
-                "/last_selfie",
-                "/school_photo",
-                "/main_hobby",
-            ],
             ["/gpt_granny", "/SQLvsNoSQL", "/first_love"],
-            ["/voice_to_text"],
+            #["/voice_to_text"],
             ["/nextstep", "/check_message", "/github_link"],
             ["/newcat", "/newdog"],
         ],
@@ -157,7 +152,7 @@ def main():
     updater.dispatcher.add_handler(CommandHandler("github_link", send_github_link))
     updater.dispatcher.add_handler(CommandHandler("nextstep", next_step))
     updater.dispatcher.add_handler(CommandHandler("check_message", check_message))
-    updater.dispatcher.add_handler(CommandHandler("voice_to_text", voice_to_text))
+    #updater.dispatcher.add_handler(CommandHandler("voice_to_text", voice_to_text))
     updater.dispatcher.add_handler(CommandHandler("newcat", give_new_cat))
     updater.dispatcher.add_handler(CommandHandler("newdog", give_new_dog))
     updater.dispatcher.add_handler(MessageHandler(Filters.text, echo))
