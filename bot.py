@@ -1,8 +1,8 @@
 import logging
-import os
 
 import requests
-from dotenv import load_dotenv
+from flask import Flask, request, jsonify
+
 from telegram import Bot, ReplyKeyboardMarkup, ext
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
@@ -10,6 +10,7 @@ from consts import *
 
 load_dotenv()
 secret_token = os.getenv("TELEGRAM_TOKEN")
+my_domain = os.getenv("MY_DOMAIN")
 
 
 logging.basicConfig(
@@ -20,9 +21,21 @@ logging.basicConfig(
 updater = Updater(token=secret_token)
 bot = Bot(token=secret_token)
 
+app = Flask(__name__)
 media_folder = "media"
+
+updater = Updater(bot=bot)
+dispatcher = updater.dispatcher
+
 file_list = os.listdir(media_folder)
 is_used_command_next_step = False
+
+
+@app.route(f'/{secret_token}', methods=['POST'])
+def webhook():
+    update = request.get_json(force=True)
+    dispatcher.process_update(update)
+    return jsonify({'status': 'ok'})
 
 
 def wake_up(update, context):
@@ -138,27 +151,23 @@ def get_new_image(URL_1, URL_2):
 
 
 def main():
-    updater.dispatcher.add_handler(CommandHandler("start", wake_up))
-    updater.dispatcher.add_handler(CommandHandler("last_selfie", give_last_selfie))
-    updater.dispatcher.add_handler(
-        CommandHandler("school_photo", give_high_school_photo)
-    )
-    updater.dispatcher.add_handler(CommandHandler("main_hobby", give_main_hobby))
-    updater.dispatcher.add_handler(CommandHandler("gpt_granny", tell_about_gpt_granny))
-    updater.dispatcher.add_handler(
-        CommandHandler("SQLvsNoSQL", tell_about_sql_vs_nosql)
-    )
-    updater.dispatcher.add_handler(CommandHandler("first_love", tell_about_first_love))
-    updater.dispatcher.add_handler(CommandHandler("github_link", send_github_link))
-    updater.dispatcher.add_handler(CommandHandler("nextstep", next_step))
-    updater.dispatcher.add_handler(CommandHandler("check_message", check_message))
-    #updater.dispatcher.add_handler(CommandHandler("voice_to_text", voice_to_text))
-    updater.dispatcher.add_handler(CommandHandler("newcat", give_new_cat))
-    updater.dispatcher.add_handler(CommandHandler("newdog", give_new_dog))
-    updater.dispatcher.add_handler(MessageHandler(Filters.text, echo))
-    updater.start_polling()
-    updater.idle()
+    dispatcher.add_handler(CommandHandler("start", wake_up))
+    dispatcher.add_handler(CommandHandler("last_selfie", give_last_selfie))
+    dispatcher.add_handler(CommandHandler("school_photo", give_high_school_photo))
+    dispatcher.add_handler(CommandHandler("main_hobby", give_main_hobby))
+    dispatcher.add_handler(CommandHandler("gpt_granny", tell_about_gpt_granny))
+    dispatcher.add_handler(CommandHandler("SQLvsNoSQL", tell_about_sql_vs_nosql))
+    dispatcher.add_handler(CommandHandler("first_love", tell_about_first_love))
+    dispatcher.add_handler(CommandHandler("github_link", send_github_link))
+    dispatcher.add_handler(CommandHandler("nextstep", next_step))
+    dispatcher.add_handler(CommandHandler("check_message", check_message))
+    dispatcher.add_handler(CommandHandler("newcat", give_new_cat))
+    dispatcher.add_handler(CommandHandler("newdog", give_new_dog))
+    dispatcher.add_handler(MessageHandler(Filters.text, echo))
 
 
 if __name__ == "__main__":
-    main()
+    webhook_url = f"https://{my_domain}/{secret_token}"
+    updater.bot.set_webhook(webhook_url)
+
+    app.run(port=8443)
